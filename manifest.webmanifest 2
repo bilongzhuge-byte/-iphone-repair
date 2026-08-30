@@ -1,0 +1,8 @@
+{
+  "name": "iPhone维修智能诊断",
+  "short_name": "维修诊断",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#101820"
+}
