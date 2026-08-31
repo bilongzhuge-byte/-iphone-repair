@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<link rel="manifest" href="manifest.webmanifest">
+<title>iPhone维修智能诊断</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--text:#17202a;--muted:#667085;--blue:#1473c9;--red:#b42318;--green:#137333;--line:#d8e0e8;--amber:#fff4ce}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:#101820;color:white;padding:14px 14px 12px;box-shadow:0 2px 8px #0003}
+h1{font-size:21px;margin:0 0 10px}.controls{display:grid;grid-template-columns:1fr;gap:9px}
+select,input,button{width:100%;font-size:17px;padding:13px;border-radius:12px;border:1px solid #cad3dc}
+button{background:#2878c9;color:#fff;border:0;font-weight:800}main{max-width:1040px;margin:auto;padding:12px}
+.tabs{display:flex;gap:8px;margin-bottom:10px}.tab{flex:1;background:white;color:#1d2939;border:1px solid var(--line);padding:10px;border-radius:10px;font-weight:700}.tab.active{background:#e8f2fc;color:#0b5da8}
+.notice{background:var(--amber);border:1px solid #e2c256;padding:11px;border-radius:12px;line-height:1.55;margin:10px 0}
+.empty{background:white;border:1px dashed #cbd5df;border-radius:14px;padding:30px 18px;text-align:center;color:var(--muted)}
+.titlecard,.cause,.compwrap{background:white;border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+.titlecard{padding:13px}.causehead{display:grid;grid-template-columns:78px 1fr;gap:10px;padding:12px;background:#eef5fb;align-items:center}
+.pct{font-size:25px;font-weight:900;color:var(--red);text-align:center}.rank{font-size:12px;color:var(--muted);text-align:center}
+.causename{font-size:18px;font-weight:800}.barbg{height:8px;background:#e7ebef;border-radius:99px;margin-top:7px;overflow:hidden}.bar{height:100%;background:#d64545;border-radius:99px}
+.body{padding:12px;line-height:1.5}.row{margin:7px 0}.label{font-weight:800}.tool{color:#5b2c83;font-weight:800}.good{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}
+.small{font-size:12px;color:var(--muted);line-height:1.45}.badge{display:inline-block;background:#e8f1fb;color:#174f7a;border-radius:999px;padding:3px 8px;font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid var(--line);padding:7px;vertical-align:top}th{background:#eef3f7;text-align:left}
+.hidden{display:none}
+@media(min-width:760px){.controls{grid-template-columns:1fr 1.6fr .55fr}}
+
+.toolbox{background:#fff;border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+.toolgrid{display:grid;grid-template-columns:1fr;gap:8px;padding:12px}
+.toolitem{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fafcff}
+.toolname{font-weight:800}.owned{color:#137333;font-weight:800}.missing{color:#b42318;font-weight:800}
+.usemine{margin:8px 0;padding:9px;border-radius:10px;background:#eef8ee;border:1px solid #b7ddb7}
+@media(min-width:760px){.toolgrid{grid-template-columns:1fr 1fr}}
+
+
+.fastpath{border:2px solid #7ab97a;background:#f4fff4;border-radius:12px;padding:10px;margin:8px 0}
+.fastpath b{color:#176b2c}
+.stage{display:inline-block;padding:2px 7px;border-radius:999px;background:#eef3ff;border:1px solid #cbd8ff;font-size:12px;font-weight:700;margin-right:6px}
+
+
+.versionbadge{display:inline-block;margin-top:8px;padding:5px 9px;border-radius:999px;background:#e9f2ff;border:1px solid #bfd4f4;font-weight:800;font-size:13px}
+.flowbox{background:#fff;border:2px solid #8db8e8;border-radius:14px;margin:10px 0;padding:12px}
+.flowtitle{font-size:18px;font-weight:900;margin-bottom:8px}
+.flowstep{border:1px solid #d8e3ef;border-radius:12px;padding:10px;margin:8px 0;background:#fbfdff}
+.flownum{display:inline-flex;width:26px;height:26px;border-radius:50%;align-items:center;justify-content:center;background:#eaf3ff;font-weight:900;margin-right:7px}
+.flowtool{font-weight:800;color:#245aa8}
+.flownote{font-size:13px;color:#5b6773;margin-top:5px}
+
+</style>
+</head>
+<body>
+<header>
+<h1>iPhone维修智能诊断｜V7.1｜60项已购工具联动版</h1><div class="versionbadge">当前版本：V7.1 · 2026-08-30｜检测顺序修正版</div>
+<div class="controls">
+<select id="model"><option value="" selected disabled>① 选择苹果型号（iPhone 11起）</option><option value="iPhone 11">iPhone 11</option><option value="iPhone 11 Pro">iPhone 11 Pro</option><option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option><option value="iPhone SE (第2代)">iPhone SE (第2代)</option><option value="iPhone 12 mini">iPhone 12 mini</option><option value="iPhone 12">iPhone 12</option><option value="iPhone 12 Pro">iPhone 12 Pro</option><option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option><option value="iPhone 13 mini">iPhone 13 mini</option><option value="iPhone 13">iPhone 13</option><option value="iPhone 13 Pro">iPhone 13 Pro</option><option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option><option value="iPhone SE (第3代)">iPhone SE (第3代)</option><option value="iPhone 14">iPhone 14</option><option value="iPhone 14 Plus">iPhone 14 Plus</option><option value="iPhone 14 Pro">iPhone 14 Pro</option><option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option><option value="iPhone 15">iPhone 15</option><option value="iPhone 15 Plus">iPhone 15 Plus</option><option value="iPhone 15 Pro">iPhone 15 Pro</option><option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option><option value="iPhone 16">iPhone 16</option><option value="iPhone 16 Plus">iPhone 16 Plus</option><option value="iPhone 16 Pro">iPhone 16 Pro</option><option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option><option value="iPhone 16e">iPhone 16e</option><option value="iPhone 17">iPhone 17</option><option value="iPhone 17 Pro">iPhone 17 Pro</option><option value="iPhone 17 Pro Max">iPhone 17 Pro Max</option><option value="iPhone Air">iPhone Air</option><option value="iPhone 17e">iPhone 17e</option></select>
+<input id="q" placeholder="② 输入故障词：不开机 / 不充电 / 3分钟重启 / Face ID…">
+<button id="search">🔍 搜索</button>
+</div>
+</header>
+<main>
+<div class="tabs"><button class="tab active" data-tab="diag">故障诊断</button><button class="tab" data-tab="comp">42项元件测试表</button><button class="tab" data-tab="tools">我的工具库</button></div>
+<section id="diag">
+<div class="notice"><b>百分比说明：</b>当前百分比是“故障可能性/经验先验”，只表示原因可能性，不代表检测先后顺序。真正检测顺序以“最快诊断流程”为准，不冒充Apple官方故障率。搜索后自动按高→低排序。后续有真实维修样本时，可替换为“实际百分比 + 样本数 + 可信度”。</div>
+<div id="results"><div class="empty">先选择iPhone型号，再输入故障词，然后点 <b>🔍 搜索</b>。</div></div>
+</section>
+<section id="comp" class="hidden"><div class="compwrap"><div style="padding:12px"><b>Fluke 87V｜42项元件/组件测试参考</b><div class="small">Ω/通断/二极管通常断电测；V⎓工作电压才通电测。CPU/GPU核心轨可能天然低阻甚至蜂鸣。</div></div><div style="overflow:auto"><table id="ct"></table></div></div></section>
+
+<section id="tools" class="hidden">
+<div class="toolbox">
+  <div style="padding:12px"><b>我的维修工具库｜当前主档：60项已购买</b>
+  <div class="small">诊断时优先调用这里已有的工具；不会把 Fluke 15B+、OCA贴合机、除泡机写成已拥有。</div></div>
+  <div class="toolgrid"><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Fluke 87V 数字万用表</div><div class="small">检测｜电压/电阻/通断/二极管/主板线路/短路排查</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">0.1mm 超细数字万用表测试表笔</div><div class="small">检测｜主板微小测试点测量</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">UTi32E 热成像仪</div><div class="small">检测｜短路、漏电、异常发热点定位</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">台式直流稳压电源</div><div class="small">供电｜主板供电、开机电流、短路/漏电分析</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">iPhone 开机/供电测试线</div><div class="small">供电｜配合直流电源给主板供电并观察电流</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">维修佬 Type-C / Lightning 尾插检测仪</div><div class="small">检测｜Lightning/USB-C尾插和充电线路辅助判断</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">ALIENTEK / 正点原子 C2 Pro + OA1</div><div class="small">检测｜USB电压/电流/功率/协议/线阻检测</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">B4 Pico DFU</div><div class="small">系统｜DFU/刷机/系统故障辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">AmScope SM-3NTP 三目体视显微镜</div><div class="small">观察｜主板微焊、焊盘、芯片、BGA观察</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">YIHUA 862BD+</div><div class="small">焊接｜热风+电烙铁，IC/小元件/飞线/焊盘修复</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">BR直尖烙铁头 + 弯尖烙铁头</div><div class="small">焊接｜精细焊点、飞线、焊盘维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Mechanic XG40 Sn63/Pb37 焊锡膏</div><div class="small">焊接｜主板焊接、植锡、芯片焊接</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">QFN超小贴片040专用锡膏套件</div><div class="small">焊接｜QFN/超小贴片精细点锡</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">0.3mm 焊锡丝</div><div class="small">焊接｜精细主板焊接/飞线</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">0.2mm 焊锡丝</div><div class="small">焊接｜更精细微焊</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">含助焊剂吸锡带 / Solder Wick</div><div class="small">焊接｜清理焊盘和多余焊锡</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Liquid Solder Flux 液体助焊剂</div><div class="small">焊接｜焊接润湿/焊盘处理</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">0.1mm 漆包飞线</div><div class="small">飞线｜主板断线/焊盘飞线</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Mechanic FJ201 0.01mm 绝缘飞线</div><div class="small">飞线｜极细线路/CPU周边精密飞线</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Mechanic FJ202 0.02mm 绝缘飞线</div><div class="small">飞线｜主板飞线/焊盘修复</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Mijing MS1 主板分层加热台</div><div class="small">BGA｜双层主板分层/合板辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">AMAOE X～17PM 中层植锡台 0.12mm</div><div class="small">BGA｜苹果双层主板中层植锡</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">K23 Pro 多功能双轴主板IC维修卡具套装</div><div class="small">夹持｜主板IC固定、刀片精修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">MaAnt CJ-3 电动除胶机</div><div class="small">除胶｜芯片周边/主板残胶处理</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">AMAOE 无磁性刮锡膏刮刀片</div><div class="small">刀具｜刮锡膏/植锡辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">AMAOE 刮锡刀片＋金属刻刀＋雕刻刀片</div><div class="small">刀具｜黑胶清理/精细切割</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID V1S Pro 标准版编程器</div><div class="small">编程｜True Tone/电池/Face ID相关数据维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 13～17PM 点阵激活读写小板</div><div class="small">编程｜Face ID点阵相关</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 12～15系列屏幕原彩修复小板</div><div class="small">编程｜12～15 True Tone</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 16系列原彩修复小板</div><div class="small">编程｜16系列 True Tone</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 17系列原彩修复小板</div><div class="small">编程｜17系列 True Tone</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 14/15系列距离感光排修复小板</div><div class="small">编程｜距离/感光维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 8～16PM 电池修复小板</div><div class="small">编程｜电池数据维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">JCID 16系列电池拓展小板</div><div class="small">编程｜16系列电池维修扩展</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">MaAnt Xmini 激光机</div><div class="small">激光｜后玻璃激光除胶/后盖维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">CPB IENBOS CP320US 加热垫/加热台</div><div class="small">拆机｜开屏/软化防水胶/后盖辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Kaisiking 双吸盘套装</div><div class="small">拆机｜开屏拉起</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Oruiiju 6件金属撬棒套装</div><div class="small">拆机｜开屏/拆机辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">MECCANIXITY 0.05mm 钼丝</div><div class="small">拆机｜切胶/屏幕后盖分离</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Fanttik S2 Pro Max 精密维修工具套装</div><div class="small">拆装｜精密螺丝/手机拆机</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Fanttik E2 Ultra 精密电动螺丝刀</div><div class="small">拆装｜手机精密螺丝拆装</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">XOOL 200件维修工具套装</div><div class="small">拆装｜撬片/螺丝刀/常规维修</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">ESD不锈钢9件工具套装</div><div class="small">拆装｜镊子/精密拆装/主板辅助</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">RELIFE RL-601S PRO 保压/压合夹具</div><div class="small">压合｜换屏/后盖粘胶后保压</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">RELIFE RL-601PX Pro 多功能边框矫正器</div><div class="small">中框｜边框变形矫正</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">FUL-4 UV紫外线固化灯</div><div class="small">UV｜UV绿油固化</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">UV紫外光固化绿油 / 阻焊绿油</div><div class="small">UV｜飞线/焊盘/线路绝缘保护</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">MY 主板清洁毛刷</div><div class="small">清洁｜助焊剂残留和主板清洁</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Mijing 纳米清洁海绵</div><div class="small">清洁｜主板清洁</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">99% IPA 异丙醇</div><div class="small">清洁｜主板/助焊剂/油污清理</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Kimtech KIMWIPES 34155</div><div class="small">清洁｜无尘擦拭</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">Kaisi Large Anti-Static Mat</div><div class="small">ESD｜防静电工作台</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">STREBITO 维修/焊接垫</div><div class="small">工作台｜工作台保护/零件分类</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">T7000 黑色维修胶</div><div class="small">胶水｜手机粘接/部件固定</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">耐高温胶带 10mm×33m</div><div class="small">保护｜热风焊接隔热保护</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">iPhone各型号屏幕前框防水胶</div><div class="small">密封｜换屏后重新密封</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">部分iPhone后框/后盖防水胶</div><div class="small">密封｜后盖/后玻璃重新粘接</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">iPhone主板散热贴＋内联棉套装</div><div class="small">耗材｜主板拆装后恢复散热/绝缘/缓冲</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">FumeClear 焊接烟雾净化/排烟设备</div><div class="small">安全｜焊锡/助焊剂烟雾处理</div></div><div class="toolitem"><div class="owned">✅ 已购买</div><div class="toolname">OSS TEAM AT01 手机气密性检测仪</div><div class="small">质检｜换屏/后盖维修后的气密性检查</div></div></div>
+</div>
+<div class="toolbox">
+  <div style="padding:12px"><b>目前明确未购买</b></div>
+  <div class="toolgrid"><div class="toolitem"><div class="missing">❌ 未购买</div><div class="toolname">OCA真空贴合机</div><div class="small">仅换外玻璃/屏幕翻新/OCA贴合</div></div><div class="toolitem"><div class="missing">❌ 未购买</div><div class="toolname">除泡机 / 高压除泡机</div><div class="small">OCA屏幕翻新后的除泡</div></div></div>
+</div>
+</section>
+
+<div class="small" style="margin:16px 2px">已联动 60 项已购买工具与耗材，并按最快、最简单、最少拆机原则选择第一检测工具。诊断框架参考Apple官方维修手册的 Battery/Charging/Power、Unexpected Restart/Shutdown、Camera/Face ID、Display/Multi‑Touch、Buttons/SIM/Taptic、Speaker/Microphone 分类，以及iFixit Hardware Isolation。精确板级点位/电压/对地值必须按对应机型资料或正常板比较。</div>
+</main>
+<script>
+const MODELS=["iPhone 11", "iPhone 11 Pro", "iPhone 11 Pro Max", "iPhone SE (第2代)", "iPhone 12 mini", "iPhone 12", "iPhone 12 Pro", "iPhone 12 Pro Max", "iPhone 13 mini", "iPhone 13", "iPhone 13 Pro", "iPhone 13 Pro Max", "iPhone SE (第3代)", "iPhone 14", "iPhone 14 Plus", "iPhone 14 Pro", "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max", "iPhone 16", "iPhone 16 Plus", "iPhone 16 Pro", "iPhone 16 Pro Max", "iPhone 16e", "iPhone 17", "iPhone 17 Pro", "iPhone 17 Pro Max", "iPhone Air", "iPhone 17e"];
+const FAULTS=[{"name": "不开机 / 完全无反应", "keywords": ["不开机", "无反应", "不亮", "dead", "no power"], "causes": [{"cause": "电量过低 / 深度放电", "p": 22, "where": "先不拆机", "test": "正常充电器+正常线充10–30分钟，再强制重启", "tool": "正常充电器/线", "mode": "—", "probe": "—", "normal": "出现低电量图标或Apple Logo并能启动", "abnormal": "仍无反应→下一项"}, {"cause": "电池老化、损坏或通信异常", "p": 18, "where": "电池 / 电池接口", "test": "换已知良品有电电池；必要时测电池电压", "tool": "Fluke 87V + 良品电池", "mode": "V⎓", "probe": "黑→负极/GND；红→正极", "normal": "电池有合理电压，良品电池能启动", "abnormal": "0V/明显低或换良品恢复→原电池方向"}, {"cause": "系统/固件卡死", "p": 15, "where": "不拆机", "test": "按对应机型强制重启；连接电脑看是否识别", "tool": "按键/电脑", "mode": "—", "probe": "—", "normal": "强制重启后恢复", "abnormal": "仍无反应→硬件方向"}, {"cause": "其实已经开机，只是显示黑屏", "p": 12, "where": "屏幕系统", "test": "拨电话、连接电脑、听声音/振动；再换良品屏", "tool": "良品屏幕", "mode": "—", "probe": "—", "normal": "有生命迹象且良品屏恢复", "abnormal": "完全无生命迹象→继续不开机"}, {"cause": "充电口 / VBUS输入故障", "p": 10, "where": "Lightning/USB‑C口、排线、VBUS", "test": "换线/头→检查端口→断电测VBUS对地→插电测输入", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→VBUS已知测试点", "normal": "对地无异常低值；插电后输入存在", "abnormal": "低值→沿VBUS查；无输入→口/排线/保护链"}, {"cause": "外围排线 / 组件拖死开机", "p": 9, "where": "屏幕、相机、前感、充电口等", "test": "断电池→最小化硬件启动→逐个接回", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "最小配置可启动", "abnormal": "接回某件后故障重现→该件/接口"}, {"cause": "主电源轨短路 / 漏电", "p": 9, "where": "主电池供电轨", "test": "断电测主供电对地；低值后沿同网逐点测", "tool": "Fluke 87V", "mode": "二极管", "probe": "黑→GND；红→主供电测试点", "normal": "与同型号正常板/可靠数据接近", "abnormal": "异常接近0→锁定该网络；某颗电容读低≠该电容一定坏"}, {"cause": "PMIC / 板层 / CPU相关主板故障", "p": 5, "where": "主板电源时序/板层", "test": "前面全部排除后，逐路确认关键电源轨", "tool": "Fluke 87V + 板级资料", "mode": "二极管+V⎓", "probe": "按对应机型点位", "normal": "关键轨对地值/工作电压合理", "abnormal": "缺哪一路→沿该路上游/负载定位"}]}, {"name": "不充电 / 充电断续 / 充电慢", "keywords": ["不充电", "充电", "充电慢", "断续", "lightning", "usb-c", "type-c"], "causes": [{"cause": "线材 / 充电器 / 插座", "p": 25, "where": "外部附件", "test": "换确定正常的线、充电器和插座", "tool": "正常附件", "mode": "—", "probe": "—", "normal": "恢复充电", "abnormal": "仍异常→下一项"}, {"cause": "充电口积灰、棉絮、弯针、腐蚀", "p": 22, "where": "Lightning/USB‑C接口", "test": "目视检查并安全清洁", "tool": "照明/非金属清洁工具", "mode": "—", "probe": "—", "normal": "插头完全到位且稳定充电", "abnormal": "物理损伤→充电口组件"}, {"cause": "充电口排线 / 主板接口", "p": 18, "where": "充电口排线及座", "test": "断电池后检查座子；换良品排线", "tool": "拆机工具+良品排线", "mode": "—", "probe": "—", "normal": "良品排线恢复", "abnormal": "仍异常→测VBUS"}, {"cause": "VBUS保护 / 输入线短路或断路", "p": 15, "where": "VBUS输入网络", "test": "断电二极管测VBUS对地；再通电测输入", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→VBUS", "normal": "对地正常；输入存在", "abnormal": "低值→查TVS/电容/保护；无输入→接口/排线/保护链"}, {"cause": "电池异常", "p": 10, "where": "电池/接口", "test": "良品电池交叉；测电池电压", "tool": "Fluke 87V+良品电池", "mode": "V⎓", "probe": "黑→负极；红→正极", "normal": "良品电池充电正常", "abnormal": "良品恢复→原电池方向"}, {"cause": "充电管理IC / 主板供电链", "p": 10, "where": "充电管理/PMIC", "test": "逐级测输入→保护→充电管理→电池端", "tool": "Fluke 87V", "mode": "二极管+V⎓", "probe": "按机型点位", "normal": "逐级有合理值/电压", "abnormal": "在哪一级消失就从那一级定位"}]}, {"name": "苹果Logo循环 / 开机循环", "keywords": ["苹果logo", "白苹果", "bootloop", "开机循环", "logo循环"], "causes": [{"cause": "电池电量/健康/通信异常", "p": 27, "where": "电池", "test": "先充电，再换良品电池", "tool": "良品电池", "mode": "—", "probe": "—", "normal": "良品电池后正常启动", "abnormal": "仍循环→下一项"}, {"cause": "外围排线/组件拖死", "p": 22, "where": "前感、充电口、电源键、相机等", "test": "最小化启动并逐个接回", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "最小配置稳定", "abnormal": "接回某件后复现→该件/接口"}, {"cause": "系统损坏/更新失败", "p": 18, "where": "iOS", "test": "能保数据则先备份；再考虑更新/恢复", "tool": "电脑/系统", "mode": "—", "probe": "—", "normal": "更新后正常", "abnormal": "仍循环→硬件方向"}, {"cause": "充电口/底部组件异常", "p": 12, "where": "充电口组件", "test": "良品充电口组件交叉", "tool": "良品排线", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "仍循环→下一项"}, {"cause": "供电轨异常", "p": 11, "where": "主板关键供电", "test": "断电测可疑供电对地；通电测工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电点", "normal": "正常", "abnormal": "低值/缺电→沿供电查"}, {"cause": "板层/CPU/存储等复杂主板故障", "p": 10, "where": "主板", "test": "前面排除后进入板级深度诊断", "tool": "板级资料/工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "需进一步板级定位"}]}, {"name": "约3分钟固定重启 / panic-full", "keywords": ["3分钟", "三分钟", "panic", "固定重启", "180秒"], "causes": [{"cause": "缺失/故障传感器数据", "p": 32, "where": "panic-full指向的传感器/排线", "test": "能进系统先看Analytics中的panic/panic-full；找重复关键词", "tool": "系统日志", "mode": "—", "probe": "—", "normal": "无稳定传感器缺失", "abnormal": "约180秒重启且日志稳定指向→对应排线/接口最高优先"}, {"cause": "充电口组件/底部传感器", "p": 20, "where": "充电口排线", "test": "结合panic关键词；良品充电口组件交叉", "tool": "良品排线", "mode": "—", "probe": "—", "normal": "换件后稳定", "abnormal": "仍重启→下一项"}, {"cause": "电池通信/温度信息", "p": 18, "where": "电池/接口", "test": "良品电池交叉；检查电池座", "tool": "良品电池", "mode": "—", "probe": "—", "normal": "稳定", "abnormal": "恢复→原电池/通信"}, {"cause": "电源键/前感/后麦等外围", "p": 13, "where": "外围排线", "test": "最小化硬件→逐个接回", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "最小配置稳定", "abnormal": "接回某件复现→该件"}, {"cause": "系统异常", "p": 9, "where": "iOS", "test": "备份后更新/恢复验证", "tool": "电脑", "mode": "—", "probe": "—", "normal": "更新后稳定", "abnormal": "仍异常→硬件"}, {"cause": "主板供电/数据线路", "p": 8, "where": "相关传感器供电/数据", "test": "断电对地，再通电测供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电脚", "normal": "合理", "abnormal": "低值/缺电→沿供电/ESD/滤波/IC"}]}, {"name": "黑屏但有声音 / 振动", "keywords": ["黑屏", "有声音", "振动", "屏幕不亮", "display"], "causes": [{"cause": "屏幕总成故障", "p": 45, "where": "屏幕", "test": "断电池后重插；换良品屏", "tool": "良品屏幕", "mode": "—", "probe": "—", "normal": "良品屏正常", "abnormal": "良品仍黑→下一项"}, {"cause": "屏幕排线 / 主板座", "p": 20, "where": "屏幕接口", "test": "检查针脚、腐蚀、摔伤、掉件", "tool": "放大观察/拆机工具", "mode": "—", "probe": "—", "normal": "接口完好", "abnormal": "损伤→先修接口"}, {"cause": "显示供电异常", "p": 18, "where": "显示供电轨", "test": "断电测对地；开机测工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→显示供电", "normal": "合理", "abnormal": "低值/缺电→查电容/滤波/供电"}, {"cause": "显示数据 / 控制线路", "p": 12, "where": "显示数据线", "test": "良品屏+供电正常后再查", "tool": "Fluke 87V+板级资料", "mode": "二极管", "probe": "按机型点位", "normal": "与正常板接近", "abnormal": "异常→滤波/ESD/断线/控制端"}, {"cause": "系统显示卡死", "p": 5, "where": "iOS", "test": "强制重启", "tool": "按键", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}]}, {"name": "触摸失灵 / 局部失灵 / 鬼触", "keywords": ["触摸", "鬼触", "touch", "局部失灵", "触控"], "causes": [{"cause": "屏幕触摸层/屏幕总成", "p": 50, "where": "屏幕", "test": "去膜/壳、断充电器、重启；再换良品屏", "tool": "良品屏幕", "mode": "—", "probe": "—", "normal": "良品屏正常", "abnormal": "良品也坏→下一项"}, {"cause": "屏幕接口 / 排线", "p": 20, "where": "屏幕座/排线", "test": "断电池检查并重插", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续板级"}, {"cause": "触摸供电异常", "p": 15, "where": "触摸供电", "test": "断电对地；通电测工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→触摸供电", "normal": "合理", "abnormal": "低值/缺电→查供电/滤波/ESD"}, {"cause": "触摸数据/控制线路", "p": 10, "where": "数据线路", "test": "良品屏+供电正常后查数据线", "tool": "Fluke 87V", "mode": "二极管", "probe": "按机型点位", "normal": "与正常板接近", "abnormal": "异常线路继续定位"}, {"cause": "充电器噪声/潮湿/外部干扰", "p": 5, "where": "外部环境", "test": "断充电器并擦干屏幕", "tool": "—", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "内部故障方向"}]}, {"name": "后置摄像头黑屏 / 抖动 / 不对焦", "keywords": ["后摄", "摄像头", "相机", "抖动", "对焦", "camera", "lidar"], "causes": [{"cause": "摄像头模块本体", "p": 44, "where": "对应镜头模块", "test": "分0.5x/1x/长焦测试；换同型号良品模块", "tool": "良品相机", "mode": "—", "probe": "—", "normal": "良品模块正常", "abnormal": "仍异常→下一项"}, {"cause": "排线 / 主板接口", "p": 22, "where": "相机接口", "test": "断电池后检查并重插", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续板级"}, {"cause": "相机供电异常", "p": 18, "where": "相机供电", "test": "断电测对地；打开相机时测工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→相机供电", "normal": "合理", "abnormal": "低值/缺电→查ESD/滤波/供电"}, {"cause": "数据/控制线路", "p": 11, "where": "相机数据线", "test": "良品模块+供电正常后查", "tool": "Fluke 87V+板级资料", "mode": "二极管", "probe": "按机型点位", "normal": "接近正常板", "abnormal": "异常→滤波/ESD/断线/控制端"}, {"cause": "系统/权限", "p": 5, "where": "iOS", "test": "重启、检查相机权限/系统", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}]}, {"name": "Face ID / TrueDepth异常", "keywords": ["face id", "faceid", "面容", "truedepth", "前摄"], "causes": [{"cause": "原装TrueDepth/前感排线物理损伤", "p": 35, "where": "TrueDepth/前感排线", "test": "断电池检查撕裂、折伤、腐蚀；优先保留原装配对件", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "无物理损伤", "abnormal": "有损→优先原装组件/接口修复"}, {"cause": "接口/供电异常", "p": 25, "where": "TrueDepth接口供电", "test": "断电测对地；必要时通电测供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电脚", "normal": "合理", "abnormal": "低值/缺电→查供电网络"}, {"cause": "组件本体异常", "p": 20, "where": "TrueDepth/前摄", "test": "结合系统提示及联动功能判断；不要随意互换配对件", "tool": "系统诊断", "mode": "—", "probe": "—", "normal": "相关功能正常", "abnormal": "保留原件进入专业修复/校准路径"}, {"cause": "配对 / 校准 / Repair Assistant相关", "p": 12, "where": "系统配置", "test": "维修后按机型/iOS支持情况运行官方诊断/Repair Assistant", "tool": "Apple系统工具", "mode": "—", "probe": "—", "normal": "校准完成", "abnormal": "继续组件/主板方向"}, {"cause": "主板数据/控制线路", "p": 8, "where": "主板", "test": "前面排除后查接口数据/控制", "tool": "Fluke 87V+板级资料", "mode": "二极管", "probe": "按机型点位", "normal": "与正常板接近", "abnormal": "异常数据线/滤波/ESD/控制端"}]}, {"name": "听筒 / 底部扬声器无声或杂音", "keywords": ["听筒", "扬声器", "喇叭", "无声", "杂音", "speaker"], "causes": [{"cause": "扬声器本体/堵塞", "p": 45, "where": "对应扬声器", "test": "先清洁声孔；再换良品扬声器", "tool": "良品扬声器", "mode": "Ω可辅助", "probe": "两端测量仅作开路初筛", "normal": "良品恢复", "abnormal": "仍异常→下一项"}, {"cause": "接触/接口/压片", "p": 22, "where": "扬声器接点/接口", "test": "检查压片、触点、腐蚀", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "接触良好", "abnormal": "修复接触/腐蚀"}, {"cause": "音频供电/驱动", "p": 18, "where": "主板音频供电", "test": "良品扬声器仍异常后测供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "按已知供电点", "normal": "合理", "abnormal": "低值/缺电→音频供电/驱动方向"}, {"cause": "系统设置/蓝牙路由", "p": 10, "where": "iOS", "test": "检查静音、音量、蓝牙输出", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}, {"cause": "主板数据/音频编解码路径", "p": 5, "where": "主板", "test": "前面排除后查", "tool": "板级资料", "mode": "—", "probe": "—", "normal": "—", "abnormal": "板级深度诊断"}]}, {"name": "麦克风无声 / 通话对方听不到", "keywords": ["麦克风", "话筒", "通话听不到", "录音无声", "microphone"], "causes": [{"cause": "对应麦克风/排线组件", "p": 40, "where": "按场景锁定前/后/底部麦克风", "test": "语音备忘录、通话、免提、前后摄视频分别测试；换良品组件", "tool": "良品排线/组件", "mode": "—", "probe": "—", "normal": "良品恢复", "abnormal": "仍异常→下一项"}, {"cause": "声孔堵塞/防尘网", "p": 20, "where": "麦克风声孔", "test": "清洁并复测", "tool": "清洁工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "接口/腐蚀", "p": 18, "where": "排线接口", "test": "断电检查并重插", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "板级"}, {"cause": "麦克风供电/偏置", "p": 14, "where": "麦克风供电", "test": "MEMS麦克风不要简单用两脚Ω判断；测已知供电对地/工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电脚", "normal": "合理", "abnormal": "低值/缺电→供电方向"}, {"cause": "音频主板路径", "p": 8, "where": "主板", "test": "前面排除后查数据/音频路径", "tool": "板级资料", "mode": "—", "probe": "—", "normal": "—", "abnormal": "板级诊断"}]}, {"name": "Taptic Engine 不振 / 弱", "keywords": ["taptic", "振动", "不振", "震动弱", "触感"], "causes": [{"cause": "Taptic Engine本体", "p": 45, "where": "Taptic Engine", "test": "系统设置确认后换良品组件", "tool": "良品Taptic", "mode": "Ω可辅助", "probe": "线圈两端仅作开路初筛", "normal": "良品恢复", "abnormal": "继续"}, {"cause": "接口/触点", "p": 25, "where": "Taptic接口", "test": "断电检查接点/腐蚀", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "驱动供电", "p": 18, "where": "Taptic驱动供电", "test": "断电对地；通电测试触感时测供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "按已知供电点", "normal": "合理", "abnormal": "低值/缺电→驱动供电"}, {"cause": "系统设置", "p": 12, "where": "iOS", "test": "检查触感反馈设置并重启", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}]}, {"name": "无线充电 / MagSafe 不工作", "keywords": ["无线充电", "magsafe", "无线", "wireless charging"], "causes": [{"cause": "充电器/壳/对位", "p": 30, "where": "外部", "test": "换正常无线充电器、去壳、重新对位", "tool": "正常充电器", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "无线充电线圈/背板组件", "p": 28, "where": "无线充电线圈", "test": "检查组件与接口；良品交叉", "tool": "良品线圈组件", "mode": "Ω可辅助", "probe": "只对线圈连续性做初筛", "normal": "良品恢复", "abnormal": "继续"}, {"cause": "接口/腐蚀", "p": 18, "where": "线圈接口", "test": "断电检查并重插", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "无线充电供电/管理", "p": 16, "where": "主板", "test": "断电对地；放上充电器时测已知工作供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "按机型已知点位", "normal": "合理", "abnormal": "低值/缺电→无线充电管理"}, {"cause": "系统/温度保护", "p": 8, "where": "iOS/温度", "test": "降温、重启、更新后复测", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}]}, {"name": "电源键 / 音量键 / Action键失灵", "keywords": ["电源键", "音量键", "action", "按键", "静音键"], "causes": [{"cause": "按键排线/机械损伤", "p": 48, "where": "对应按键排线", "test": "确认机械手感；检查排线；换良品", "tool": "良品排线", "mode": "—", "probe": "—", "normal": "良品恢复", "abnormal": "继续"}, {"cause": "接口/腐蚀", "p": 22, "where": "主板接口", "test": "断电检查并重插", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "机械开关触点", "p": 15, "where": "简单开关线路", "test": "若是明确机械接点，可用通断/Ω观察按下前后变化", "tool": "Fluke 87V", "mode": "Ω/通断", "probe": "测已知开关两端", "normal": "按下/松开状态明显变化", "abnormal": "无变化→排线/开关"}, {"cause": "按键信号线路", "p": 10, "where": "主板数据/上拉", "test": "按机型资料测对地/工作电压", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "按机型点位", "normal": "合理", "abnormal": "异常→ESD/滤波/断线"}, {"cause": "系统设置", "p": 5, "where": "iOS", "test": "重启/检查辅助功能", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件"}]}, {"name": "过热 / 待机耗电快", "keywords": ["过热", "发热", "耗电", "掉电快", "待机耗电", "overheating"], "causes": [{"cause": "电池老化/内阻异常", "p": 28, "where": "电池", "test": "看电池健康/鼓包/异常温升；良品电池交叉", "tool": "良品电池", "mode": "—", "probe": "—", "normal": "良品后正常", "abnormal": "原电池方向"}, {"cause": "后台软件/无线信号差", "p": 22, "where": "系统", "test": "查看电池用量、关闭异常后台、网络环境复测", "tool": "iOS", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}, {"cause": "外围组件漏电", "p": 18, "where": "相机/屏幕/充电口等", "test": "最小化硬件或逐件断开观察", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "断开某件后恢复", "abnormal": "该件/接口"}, {"cause": "供电轨漏电/轻微短路", "p": 17, "where": "主板供电", "test": "断电测可疑电源轨对地；结合发热点", "tool": "Fluke 87V", "mode": "二极管", "probe": "黑→GND；红→目标供电", "normal": "合理", "abnormal": "异常低→沿网络查"}, {"cause": "PMIC/RF/主板IC异常", "p": 10, "where": "主板", "test": "前面排除后按发热点和供电轨定位", "tool": "板级工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "板级诊断"}, {"cause": "正常高负载发热", "p": 5, "where": "使用场景", "test": "游戏/导航/快充时降负载复测", "tool": "—", "mode": "—", "probe": "—", "normal": "降负载后恢复", "abnormal": "若持续异常再查"}]}, {"name": "进水 / 腐蚀", "keywords": ["进水", "腐蚀", "水损", "liquid", "water"], "causes": [{"cause": "接口/排线腐蚀", "p": 32, "where": "所有可见接口", "test": "不要继续充电/反复开机；先断电池，检查并清洁", "tool": "99% IPA/拆机工具", "mode": "—", "probe": "—", "normal": "清洁干燥后无腐蚀", "abnormal": "严重腐蚀先修复"}, {"cause": "主供电或外围供电漏电/短路", "p": 25, "where": "主板供电", "test": "清洁干燥后先断电测主供电/可疑轨对地", "tool": "Fluke 87V", "mode": "二极管", "probe": "黑→GND；红→目标供电", "normal": "无异常低值", "abnormal": "低值→沿该网络定位"}, {"cause": "电池受损", "p": 18, "where": "电池", "test": "检查鼓包/破损/异常热；良品电池交叉", "tool": "良品电池", "mode": "—", "probe": "—", "normal": "良品正常", "abnormal": "异常电池停止使用"}, {"cause": "腐蚀导致开路/断线", "p": 15, "where": "腐蚀区域", "test": "Ω/通断检查明确应该导通的线路", "tool": "Fluke 87V", "mode": "Ω/通断", "probe": "按线路两端", "normal": "正常导通", "abnormal": "OL/不导通→修线/焊盘"}, {"cause": "IC/板层内部腐蚀", "p": 10, "where": "主板", "test": "前面排除后进入板级深度诊断", "tool": "板级工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "可能需要芯片/板层维修"}]}, {"name": "摔机后不开机 / 某功能失效", "keywords": ["摔机", "跌落", "摔坏", "drop", "掉地"], "causes": [{"cause": "排线/接口松脱或损伤", "p": 32, "where": "屏幕/电池/相机/充电口等", "test": "断电池后检查并重插所有相关接口", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "屏幕/相机等外围件损坏", "p": 24, "where": "对应功能组件", "test": "良品组件交叉", "tool": "良品组件", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "原组件故障"}, {"cause": "焊盘/滤波/小元件脱落", "p": 18, "where": "接口周围主板", "test": "放大检查；Ω/二极管做线路比较", "tool": "显微观察+Fluke 87V", "mode": "Ω/二极管", "probe": "按机型点位", "normal": "正常", "abnormal": "异常→修焊盘/滤波/ESD"}, {"cause": "板层/主板弯曲断线", "p": 14, "where": "主板", "test": "前面排除后查板层/关键供电", "tool": "板级资料", "mode": "—", "probe": "—", "normal": "—", "abnormal": "板层维修"}, {"cause": "电池受撞损伤", "p": 12, "where": "电池", "test": "检查外观/电压/良品电池交叉", "tool": "Fluke 87V+良品电池", "mode": "V⎓", "probe": "黑→负极；红→正极", "normal": "合理", "abnormal": "异常→电池方向"}]}, {"name": "无服务 / SIM不识别 / 蜂窝异常", "keywords": ["无服务", "sim", "蜂窝", "基带", "无信号", "no service"], "causes": [{"cause": "运营商/SIM/eSIM配置", "p": 28, "where": "网络/账户", "test": "检查运营商状态、SIM/eSIM、飞行模式、网络设置", "tool": "系统/运营商", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}, {"cause": "SIM座/接口/排线（有实体SIM机型）", "p": 20, "where": "SIM路径", "test": "检查SIM座、针脚、腐蚀", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "天线同轴/接点", "p": 18, "where": "天线/同轴", "test": "检查同轴头、接地点、天线接点", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "SIM供电/检测线路", "p": 14, "where": "SIM供电/检测", "test": "断电二极管对地；通电按机型测供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知SIM供电", "normal": "合理", "abnormal": "低值/缺电→供电/ESD/滤波"}, {"cause": "基带/RF主板故障", "p": 12, "where": "基带/RF", "test": "前面排除后进入基带/RF诊断", "tool": "板级工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "专业板级诊断"}, {"cause": "系统/更新异常", "p": 8, "where": "iOS", "test": "重启、更新、重置网络设置", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件"}]}, {"name": "Wi‑Fi / Bluetooth / GPS / NFC异常", "keywords": ["wifi", "wi-fi", "蓝牙", "bluetooth", "gps", "nfc", "定位"], "causes": [{"cause": "系统/网络设置", "p": 25, "where": "iOS", "test": "重启、重置网络设置、更新系统", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "硬件方向"}, {"cause": "天线/同轴/接点", "p": 24, "where": "对应天线", "test": "检查同轴、天线弹片、接地点", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "NFC/无线线圈组件（NFC相关）", "p": 15, "where": "NFC/无线组件", "test": "检查接口/良品交叉", "tool": "良品组件", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "相关供电异常", "p": 15, "where": "无线模块供电", "test": "断电对地；通电测已知供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电", "normal": "合理", "abnormal": "低值/缺电→供电方向"}, {"cause": "主板无线IC/数据线路", "p": 13, "where": "主板", "test": "前面排除后按机型资料定位", "tool": "板级工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "板级诊断"}, {"cause": "摔伤/进水导致局部损伤", "p": 8, "where": "接口/主板", "test": "结合历史检查腐蚀/掉件", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "—", "abnormal": "按损伤点维修"}]}, {"name": "环境光 / 距离感应异常", "keywords": ["距离感应", "环境光", "接电话不灭屏", "自动亮度", "proximity", "ambient"], "causes": [{"cause": "前感排线/组件", "p": 40, "where": "前感/TrueDepth相关组件", "test": "检查排线、位置、遮挡；良品/原装组件验证", "tool": "拆机工具", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "屏幕/胶/保护膜遮挡", "p": 22, "where": "屏幕上方区域", "test": "去膜、检查装配位置和胶", "tool": "外观检查", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "接口/供电", "p": 18, "where": "前感接口", "test": "断电对地；通电测已知供电", "tool": "Fluke 87V", "mode": "二极管→V⎓", "probe": "黑→GND；红→已知供电", "normal": "合理", "abnormal": "低值/缺电→供电/接口"}, {"cause": "系统校准/配置", "p": 12, "where": "iOS", "test": "重启/更新；维修后按机型做系统配置", "tool": "系统", "mode": "—", "probe": "—", "normal": "恢复", "abnormal": "继续"}, {"cause": "主板数据线路", "p": 8, "where": "主板", "test": "前面排除后查数据/滤波", "tool": "Fluke 87V", "mode": "二极管", "probe": "按机型点位", "normal": "正常", "abnormal": "异常→板级"}]}];
+const COMPONENTS=[["电阻 R", "Ω", "断电", "测两端", "接近标称/参考值", "OL或严重偏离"], ["MLCC/电容 C", "二极管/Ω", "断电", "对地测供电端", "与同型号正常板比较", "异常接近0说明该供电轨可能短路，不等于该电容一定坏"], ["电感 L", "Ω/通断", "断电", "测两端", "低阻/可蜂鸣常见", "OL可能开路"], ["磁珠 FB/L", "Ω/通断", "断电", "测两端", "低阻/导通常见", "OL可能断裂"], ["保险丝 F", "通断/Ω", "断电", "测两端", "≈0Ω且蜂鸣", "OL/不蜂鸣=熔断"], ["0Ω电阻", "通断/Ω", "断电", "测两端", "≈0Ω且蜂鸣", "OL=开路"], ["普通二极管 D", "二极管", "断电", "正反各测一次", "常见硅二极管单向约0.2–0.8V，另一方向OL", "两向近0疑短路；两向OL可能开路"], ["稳压二极管 ZD", "二极管", "断电", "先做PN结初筛", "只能初筛PN结", "普通二极管档不能确认击穿电压"], ["TVS", "二极管/Ω", "断电", "对地检查", "与正常板/同网比较", "异常近0需查TVS及整条供电/信号轨"], ["ESD保护", "二极管", "断电", "各信号对地比较", "相似通道应接近", "某路明显异常需查ESD/线路"], ["BJT Q", "二极管", "断电", "B-E/B-C/C-E双向测", "结压降符合晶体管规律", "多脚双向近0疑短路"], ["MOSFET Q", "二极管", "断电", "识别G/D/S后测D-S、G-S、G-D", "无明显G极漏电；D-S表现需结合电路", "D-S双向近0可疑，但在路并联会影响"], ["滤波器 FL", "Ω/通断", "断电", "按通道输入→输出", "该导通的通道导通", "OL可疑"], ["晶振 X/Y", "示波器/频率", "通电", "看振荡", "应有对应频率/波形", "普通万用表不可靠"], ["机械开关 SW", "通断/Ω", "断电", "按下前后测两端", "状态明显变化", "无变化可疑"], ["连接器 J/P", "通断/二极管", "断电", "查连续性和对地值", "与正常通道/板接近", "断路/异常低值需查针脚/焊点"], ["IC U", "二极管+V⎓", "断电→通电", "先对地，再工作电压", "各供电正常", "单个数值不能证明IC坏"], ["OLED/LCD显示供电/排线", "二极管→V⎓", "断电→通电", "显示座供电对地/工作电压", "与机型资料/正常板接近", "低值/缺电→供电/滤波/接口"], ["Multi‑Touch接口", "二极管→V⎓", "断电→通电", "触摸供电与接口", "合理", "异常→屏幕/接口/供电"], ["电池接口", "V⎓/二极管", "断电/按需通电", "电池电压/主供电对地", "合理", "异常→电池/主供电"], ["Lightning/USB‑C充电口", "二极管→V⎓", "断电→插电", "VBUS对地与输入电压", "无异常低值且输入存在", "低值/无输入→接口/保护链"], ["后置相机", "二极管→V⎓", "断电→调用相机", "相机供电", "合理", "低值/缺电→供电/接口"], ["前摄/TrueDepth接口", "二极管→V⎓", "断电→工作", "已知供电", "合理", "异常→供电/接口/组件"], ["Face ID/TrueDepth组件", "基础供电检查", "断电→工作", "优先保留原装配对件", "供电正常", "完整功能不能只靠万用表判断"], ["顶部扬声器", "Ω辅助", "断电", "两端开路初筛", "非OL且与良品接近", "OL疑线圈开路"], ["底部扬声器", "Ω辅助", "断电", "两端开路初筛", "非OL且与良品接近", "OL疑线圈开路"], ["麦克风", "二极管→V⎓", "断电→工作", "查供电/偏置", "合理", "MEMS麦克风不要只测两脚Ω"], ["Taptic Engine", "Ω辅助", "断电", "两端开路初筛", "非OL且与良品接近", "OL疑开路"], ["电源/侧键排线", "通断/二极管", "断电", "机械触点/信号线", "按键状态变化/对地合理", "异常→排线/接口/信号"], ["音量/静音/Action排线", "通断/二极管", "断电", "同上", "同上", "同上"], ["NFC/无线充电线圈", "Ω辅助/二极管", "断电", "线圈连续性+接口供电", "连续性正常", "OL/接口异常"], ["天线/同轴", "目视/连续性谨慎", "断电", "只确认屏蔽地/接点", "屏蔽地接地正常", "不要用蜂鸣判断RF中心导体好坏"], ["SIM/eSIM供电", "二极管→V⎓", "断电→通电", "已知SIM供电", "合理", "低值/缺电→SIM电源/ESD"], ["环境光/距离传感器", "二极管→V⎓", "断电→工作", "接口供电", "合理", "异常→组件/供电/数据"], ["LiDAR（有配备）", "二极管→V⎓", "断电→调用", "供电", "合理", "完整功能仍需系统/良品交叉"], ["主电池供电轨", "二极管", "断电", "主供电对地", "与同型号正常板接近", "异常低→沿该网络定位"], ["VBUS输入轨", "二极管→V⎓", "断电→插电", "VBUS对地/输入", "无短路且有输入", "低值/无输入→保护/接口"], ["PMIC输出轨", "二极管→V⎓", "断电→工作", "各输出对地/电压", "合理", "缺哪一路查该路"], ["CPU/GPU核心轨", "二极管/Ω", "断电", "对地比较", "可能天然低阻甚至蜂鸣", "不能仅因蜂鸣判断短路"], ["测试点 TP", "按线路决定", "按测量决定", "按板图", "与资料/正常板一致", "异常需沿网查"], ["焊盘/过孔/断线", "通断/Ω", "断电", "线路两端", "应导通则导通", "OL=断路"], ["GND/屏蔽地", "通断/Ω", "断电", "对主地", "≈0Ω/蜂鸣", "异常说明接地问题"]];
+const model=document.getElementById('model'), q=document.getElementById('q'), results=document.getElementById('results');
+
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function genNum(n){const m=n.match(/iPhone\s+(\d+)/);if(m)return +m[1]; if(/SE/.test(n))return 13; return 15;}
+function adjusted(f,mname){
+ let cs=f.causes.map(x=>({...x,w:x.p})), g=genNum(mname);
+ if(f.name.includes("不开机")) cs.forEach(c=>{if(g<=13&&/电池/.test(c.cause))c.w*=1.12;if(g>=15&&/充电口/.test(c.cause))c.w*=1.06;});
+ if(f.name.includes("3分钟")) cs.forEach(c=>{if(g>=12&&/传感器/.test(c.cause))c.w*=1.16;});
+ if(f.name.includes("黑屏")) cs.forEach(c=>{if(/屏幕总成/.test(c.cause))c.w*=1.06;});
+ let sum=cs.reduce((a,c)=>a+c.w,0), raw=cs.map(c=>c.w*100/sum), ints=raw.map(Math.floor), remain=100-ints.reduce((a,b)=>a+b,0);
+ raw.map((x,i)=>[x-ints[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,remain).forEach(x=>ints[x[1]]++);
+ cs.forEach((c,i)=>c.pct=ints[i]); return cs.sort((a,b)=>b.pct-a.pct);
+}
+function findFaults(term){
+ const t=term.trim().toLowerCase();
+ return FAULTS.filter(f=>f.name.toLowerCase().includes(t)||f.keywords.some(k=>t.includes(k.toLowerCase())||k.toLowerCase().includes(t)));
+}
+
+
+function fastestPath(cat,cause){
+  const t=(cat+' '+cause).toLowerCase();
+  if(/不开机|完全无反应|无反应/.test(t)) return {
+    first:'台式直流稳压电源 + iPhone开机/供电测试线',
+    why:'先看开机电流最快判断供电、短路、启动或黑屏方向。',
+    steps:'先确认无进水/鼓包等明显风险 → 接供电测试线 → 用合适电压和保守限流 → 按开机键观察电流变化。',
+    next:'若短路特征明显：Fluke 87V确认对地异常 → 限流注入 → UTi32E找发热点；若启动电流正常但黑屏，转显示诊断。'
+  };
+  if(/不充电|充电慢|充电断续|尾插|lightning|usb-c|vbus/.test(t)) return {
+    first:'C2 Pro + OA1 USB测试仪 / 维修佬尾插检测仪',
+    why:'先看输入电压、电流、协议和接口状态，比拆机盲测更快。',
+    steps:'先用正常线和充电器 → C2 Pro看输入电压/电流与握手 → 尾插检测仪检查Lightning/USB-C接口。',
+    next:'外部输入正常但仍不充电，再检查尾插排线/接口座；确认板级异常后才用Fluke 87V。'
+  };
+  if(/3分钟|180秒|panic|固定重启/.test(t)) return {
+    first:'先读 panic-full / 系统日志 + B4 Pico DFU',
+    why:'固定约3分钟重启常与传感器/通信缺失有关，先看日志比盲测主板快。',
+    steps:'先获取panic关键词 → 结合最近动过的排线/尾插/电池 → 做最小化硬件隔离。',
+    next:'锁定部件后先重插/已知正常件交叉测试，再做Fluke供电/对地检测。'
+  };
+  if(/苹果logo|开机循环|bootloop/.test(t)) return {
+    first:'B4 Pico DFU + 最小化硬件隔离',
+    why:'先区分系统问题和外设拖死，比测大量元件快。',
+    steps:'尝试DFU/恢复判断系统层 → 断电后最小化硬件启动 → 逐个接回外设。',
+    next:'只有锁定具体外设/电源轨后再用Fluke 87V。'
+  };
+  if(/黑屏|有声音|有振动|显示/.test(t)) return {
+    first:'已知正常屏交叉测试 + 屏幕接口目检',
+    why:'显示类问题先确认主机存活，再用正常屏排除屏幕本体最快。',
+    steps:'先打电话/连电脑/看振动确认主机存活 → 断电检查座子和排线 → 接正常屏。',
+    next:'正常屏仍黑，再用Fluke 87V查显示供电/对地。'
+  };
+  if(/触摸|鬼触|局部失灵/.test(t)) return {
+    first:'已知正常屏交叉测试',
+    why:'触摸问题优先排屏幕/排线通常最快。',
+    steps:'重启/去保护膜/换正常充电器 → 检查排线座子 → 正常屏测试。',
+    next:'仍异常再用Fluke查触摸供电与数据路径。'
+  };
+  if(/face id|faceid|truedepth|点阵/.test(t)) return {
+    first:'JCID V1S Pro + 对应点阵/Face ID扩展板',
+    why:'Face ID涉及原装配对组件和专用模块，专用工具优先于万用表。',
+    steps:'先读取/判断TrueDepth与点阵状态 → 检查原装排线和接口 → 保留原装配对组件。',
+    next:'只有怀疑供电/短路时再用Fluke 87V。'
+  };
+  if(/原彩|true tone/.test(t)) return {
+    first:'JCID V1S Pro + 对应原彩修复小板',
+    why:'原彩是数据/配对类问题，编程器应第一时间使用。',
+    steps:'读取屏幕/原彩数据 → 用对应型号修复小板处理 → 系统验证。',
+    next:'仅在屏幕供电异常时用Fluke。'
+  };
+  if(/电池|电量|电池数据/.test(t)) return {
+    first:'JCID V1S Pro + 电池修复小板 / C2 Pro',
+    why:'先区分数据异常和实际充放电异常。',
+    steps:'先看系统电池状态 → JCID读电池数据 → C2 Pro观察充电输入。',
+    next:'怀疑板级供电才用Fluke测电池轨。'
+  };
+  if(/后置摄像头|摄像头|不对焦|抖动/.test(t)) return {
+    first:'已知正常摄像头交叉测试',
+    why:'摄像头本体/排线故障优先交叉测试最快。',
+    steps:'先定位哪个镜头异常 → 重插接口 → 正常摄像头测试。',
+    next:'仍异常再测供电/数据。'
+  };
+  if(/扬声器|听筒|麦克风|taptic|振动/.test(t)) return {
+    first:'系统功能定位 + 已知正常部件交叉测试',
+    why:'先确定具体组件，再换正常件，比先测板快。',
+    steps:'用语音备忘录/通话/视频/系统振动测试定位 → 检查接口 → 正常件交叉测试。',
+    next:'仍异常再用Fluke测线圈/供电/驱动。'
+  };
+  if(/无线充电|magsafe|nfc/.test(t)) return {
+    first:'已知正常充电器/附件 + 线圈接口检查',
+    why:'无线类问题先排附件和线圈总成更快。',
+    steps:'去壳 → 换正常MagSafe/无线充电器 → 检查线圈排线和接口。',
+    next:'仍异常再用Fluke测线圈/供电。'
+  };
+  if(/进水|腐蚀/.test(t)) return {
+    first:'断电 + AmScope显微镜目检 + 99% IPA清洁',
+    why:'进水机先防止继续通电扩大损坏，再找腐蚀。',
+    steps:'立即断电/断电池 → 显微镜找腐蚀 → IPA清洁 → 干燥后再测。',
+    next:'需要时Fluke查短路，必要时稳压电源限流 + UTi32E。'
+  };
+  if(/摔|跌落|掉落/.test(t)) return {
+    first:'显微镜/目检 + 接口重插 + 已知正常件交叉测试',
+    why:'摔机优先查机械损伤和松脱，比先测电阻高效。',
+    steps:'查座子、排线、焊点、中框变形 → 重插 → 对应模块交叉测试。',
+    next:'确认板级异常后再上Fluke和微焊。'
+  };
+  if(/短路|漏电|发热|过热/.test(t)) return {
+    first:'Fluke 87V确认对地异常 → 台式电源限流注入 + UTi32E热成像',
+    why:'这是万用表和热成像应该优先使用的场景。',
+    steps:'断电测可疑电源轨对地 → 确认异常后按已知安全电压限流注入 → 热成像找发热点。',
+    next:'AmScope确认元件后再用YIHUA 862BD+拆焊维修。'
+  };
+  if(/无服务|sim|蜂窝|wifi|bluetooth|gps/.test(t)) return {
+    first:'系统/网络设置 + SIM/天线/同轴目检',
+    why:'射频类优先排系统、运营商、SIM和天线连接。',
+    steps:'先排系统/运营商/SIM → 检查天线与同轴座 → 正常部件交叉测试。',
+    next:'板级供电异常时再用Fluke；RF中心导体不要用蜂鸣判断。'
+  };
+  return {
+    first:'先做不拆机功能定位 + 已知正常部件交叉测试',
+    why:'默认遵循最快、最简单、最少拆机原则。',
+    steps:'先确认症状 → 排外部附件/软件 → 目检/重插 → 正常件交叉测试。',
+    next:'只有需要板级确认时再使用Fluke 87V。'
+  };
+}
+
+function ownedToolAdvice(c){
+ const txt=(c.tool+' '+c.test+' '+c.where+' '+c.cause).toLowerCase();
+ const a=[];
+ if(/fluke|万用表|二极管|电压|电阻|通断|短路|供电轨/.test(txt)) a.push('Fluke 87V + 0.1mm超细表笔');
+ if(/开机电流|直流电源|主板供电|漏电/.test(txt)) a.push('台式直流稳压电源 + iPhone开机/供电测试线');
+ if(/发热|热点|短路/.test(txt)) a.push('UTi32E 热成像仪');
+ if(/充电口|尾插|lightning|usb-c|vbus/.test(txt)) a.push('维修佬 Type-C/Lightning尾插检测仪','C2 Pro + OA1 USB测试仪');
+ if(/dfu|刷机|系统/.test(txt)) a.push('B4 Pico DFU');
+ if(/显微|焊盘|飞线|芯片|板级|滤波|esd|断线/.test(txt)) a.push('AmScope SM-3NTP');
+ if(/拆焊|焊接|ic|mosfet|电容|电阻|滤波|esd|焊盘/.test(txt)) a.push('YIHUA 862BD+');
+ if(/face id|faceid|truedepth|原彩|true tone|电池数据|点阵|距离感光/.test(txt)) a.push('JCID V1S Pro + 对应扩展小板');
+ if(/后玻璃|后盖/.test(txt)) a.push('MaAnt Xmini 激光机');
+ if(/开屏|屏幕|防水胶|后盖/.test(txt)) a.push('CPB CP320US + 双吸盘/撬棒/钼丝');
+ if(/保压|粘胶|密封/.test(txt)) a.push('RELIFE RL-601S PRO');
+ if(/气密|密封/.test(txt)) a.push('OSS TEAM AT01');
+ return [...new Set(a)];
+}
+
+
+const FLOW={
+"不开机 / 完全无反应":[
+["不拆机","正常充电器＋正常线","充电10–30分钟，同时观察是否出现低电量图标；再按对应机型强制重启。","若恢复→结束；仍无反应→第2步"],
+["不拆机","C2 Pro + OA1 USB测试仪 / 尾插检测仪","接正常充电器与线，先看输入电压、电流、协议和接口状态。","有明显充电输入但屏幕不亮→第3步；几乎无输入/接口异常→先查线、充电口、尾插"],
+["不拆机","电脑 / 来电 / 振动","连接电脑看是否识别，拨打电话或听声音/振动，排除“其实已开机只是黑屏”。","有生命迹象→转黑屏诊断；完全无生命迹象→第4步"],
+["需要拆机","台式直流稳压电源 + iPhone开机/供电测试线","打开设备并按安全流程断电池；用对应机型供电线观察开机电流曲线。","0电流/异常大电流/周期跳变分别进入供电、短路或启动方向"],
+["板级确认","Fluke 87V + 0.1mm表笔","只有前面结果指向主板时，再测主供电对地、关键输入/供电。","异常低值→第6步；无异常→结合电流曲线继续时序/外设隔离"],
+["短路定位","台式电源限流 + UTi32E热成像","确认具体安全注入电压后限流注入，热成像找发热点。","锁定元件/网络→显微镜确认后再微焊"]
+],
+"不充电 / 充电断续 / 充电慢":[
+["不拆机","正常线/充电器 + C2 Pro + OA1","先排线、充电器、插座，再看输入电压、电流、功率/协议。","附件异常→更换；仍异常→第2步"],
+["不拆机","维修佬 Type-C / Lightning 尾插检测仪","检查接口与尾插状态；同时目检积灰、棉絮、弯针、腐蚀。","接口方向异常→先处理接口；输入正常仍不充→第3步"],
+["需要拆机","目检 + 良品尾插/排线","断电池后检查尾插排线与主板座；必要时良品排线交叉。","恢复→尾插/排线；仍异常→第4步"],
+["板级确认","Fluke 87V","再测VBUS对地与通电输入，沿保护链/充电管理逐级确认。","低值/断路/缺输入→对应网络定位"]
+],
+"苹果Logo循环 / 开机循环":[
+["不拆机","B4 Pico DFU / 电脑","先确认能否进入恢复/DFU并判断系统层问题。","系统恢复后正常→结束；仍循环→第2步"],
+["需要拆机","良品电池","良品电池交叉，排除供电/通信。","恢复→电池；仍循环→第3步"],
+["需要拆机","硬件最小化隔离","断电池后最小配置启动，逐件接回外围。","接回某件复现→该外围/接口"],
+["板级确认","Fluke 87V + 台式电源","只有外围排除后再看供电轨与开机电流。","按异常轨/电流方向继续"]
+],
+"约3分钟固定重启 / panic-full":[
+["不拆机","系统日志 / panic-full","先读取Analytics里的panic/panic-full，找重复关键词。","有稳定传感器关键词→直接进入对应组件"],
+["不拆机/轻拆","B4 Pico DFU / 系统验证","排除系统损坏，结合最近维修史。","仍固定约180秒→第3步"],
+["需要拆机","良品尾插/电池/相关传感排线","按panic关键词优先交叉对应组件。","换某件恢复→锁定组件"],
+["需要拆机","最小化硬件隔离","逐件接回，且每次插拔前断电池。","复现于某件→该件/接口"],
+["板级确认","Fluke 87V","最后才查相关传感器供电/数据线路。","缺电/异常对地→板级定位"]
+],
+"黑屏但有声音 / 振动":[
+["不拆机","来电/电脑/振动","先确认主机确实已开机。","确认存活→第2步"],
+["需要拆机","良品屏幕 + 接口目检","断电池后检查屏幕座/排线，再接良品屏。","恢复→屏幕/排线；仍黑→第3步"],
+["板级确认","Fluke 87V","再查显示供电对地与工作电压。","异常→供电/滤波/数据路径"]
+],
+"触摸失灵 / 局部失灵 / 鬼触":[
+["不拆机","系统/外部排除","重启、去膜/壳、断开充电器、擦干屏幕。","恢复→外部/软件；仍异常→第2步"],
+["需要拆机","良品屏幕","检查并重插排线后良品屏交叉。","恢复→屏幕；仍异常→第3步"],
+["板级确认","Fluke 87V","最后查触摸供电/数据线路。","异常→板级定位"]
+],
+"后置摄像头黑屏 / 抖动 / 不对焦":[
+["不拆机","系统相机测试","分别测试0.5x/1x/长焦，确认具体镜头与症状。","锁定镜头→第2步"],
+["需要拆机","良品摄像头","检查接口并用同型号良品模块交叉。","恢复→相机模块；仍异常→第3步"],
+["板级确认","Fluke 87V","再查相机供电/数据线路。","异常→对应供电/滤波/ESD"]
+],
+"Face ID / TrueDepth异常":[
+["不拆机","系统提示 / JCID V1S Pro","先读取Face ID/TrueDepth相关状态，保留原装配对组件。","能锁定点阵/前感方向→第2步"],
+["需要拆机","JCID对应点阵小板 + 显微镜目检","检查原装排线、折伤、腐蚀、接口。","物理损伤→原件修复优先"],
+["系统配置","官方诊断/Repair Assistant（适用机型）","维修后按机型/iOS支持情况做系统配置/校准。","仍异常→第4步"],
+["板级确认","Fluke 87V","只有怀疑供电/短路时才测TrueDepth相关供电。","异常→板级供电/数据定位"]
+],
+"听筒 / 底部扬声器无声或杂音":[
+["不拆机","系统/声孔清洁","先分清听筒还是底部扬声器，检查音量/静音并清洁声孔。","仍异常→第2步"],
+["需要拆机","良品扬声器","检查触点/压片/接口并交叉良品。","恢复→扬声器/接触"],
+["板级确认","Fluke 87V","最后才做线圈开路初筛与驱动供电检查。","异常→驱动/线路"]
+],
+"麦克风无声 / 通话对方听不到":[
+["不拆机","语音备忘录/通话/视频","先定位是哪一颗麦克风异常。","锁定位置→第2步"],
+["不拆机/轻拆","声孔清洁","清洁对应麦克风声孔并复测。","恢复→堵塞"],
+["需要拆机","良品对应排线/组件","检查接口并交叉良品。","恢复→组件/排线"],
+["板级确认","Fluke 87V","MEMS麦克风不按普通两线圈测；只在明确点位查供电/对地。","异常→供电/数据线路"]
+],
+"Taptic Engine 不振 / 弱":[
+["不拆机","系统设置","先确认触感反馈设置并重启。","恢复→结束"],
+["需要拆机","接口目检 + 良品Taptic","重插接口并良品交叉。","恢复→Taptic/接触"],
+["板级确认","Fluke 87V","最后查驱动供电/线路。","异常→驱动方向"]
+],
+"无线充电 / MagSafe 不工作":[
+["不拆机","正常MagSafe/无线充电器","去壳、重新对位、换正常充电器。","恢复→外部附件"],
+["需要拆机","线圈/背板组件 + 良品交叉","检查接口和线圈组件。","恢复→线圈/背板"],
+["板级确认","Fluke 87V","最后查无线充电供电/管理。","异常→主板方向"]
+],
+"电源键 / 音量键 / Action键失灵":[
+["不拆机","机械手感/系统","先确认按键手感、辅助功能与重启。","恢复→结束"],
+["需要拆机","良品按键排线","检查排线/接口并交叉。","恢复→排线/按键"],
+["板级确认","Fluke 87V","明确机械接点时可用通断/Ω，再查按键信号供电。","异常→线路方向"]
+],
+"过热 / 待机耗电快":[
+["不拆机","iOS电池用量/使用场景","先排游戏、导航、弱信号、后台App等正常高负载。","恢复→软件/场景"],
+["不拆机","电池状态 / JCID / C2 Pro","看电池健康与充放电表现，必要时读电池数据。","电池异常→电池方向"],
+["需要拆机","UTi32E热成像","在安全状态下观察异常发热区域。","锁定区域→第4步"],
+["板级确认","Fluke 87V + 台式电源","再查可疑供电轨漏电/短路。","异常→对应网络"]
+],
+"进水 / 腐蚀":[
+["立即处理","断电","不要继续充电或反复开机，尽快断开电池。","完成后→第2步"],
+["需要拆机","AmScope显微镜 + 99% IPA","先找腐蚀、液迹并清洁、干燥。","处理后→第3步"],
+["板级确认","Fluke 87V","清洁干燥后才测主供电/可疑轨对地。","异常低→第4步"],
+["短路定位","台式电源限流 + UTi32E","确认安全注入条件后定位发热点。","锁定后再微焊"]
+],
+"摔机后不开机 / 某功能失效":[
+["不拆机","外观/功能定位","先确认是不开机还是单一功能失效，检查边框变形/玻璃/摄像头等。","锁定功能→第2步"],
+["需要拆机","显微镜目检 + 接口重插","优先查松脱、座子、排线、掉件。","恢复→机械/接触问题"],
+["需要拆机","良品组件交叉","对屏幕/相机/电池等相关件交叉。","恢复→组件"],
+["板级确认","Fluke 87V + 显微镜","最后才查焊盘、滤波、断线、供电。","异常→微焊"]
+],
+"无服务 / SIM不识别 / 蜂窝异常":[
+["不拆机","系统/运营商/SIM","先排飞行模式、网络设置、运营商、SIM/eSIM。","恢复→结束"],
+["需要拆机","SIM座/天线/同轴目检","检查针脚、同轴头、天线接点。","发现问题→处理"],
+["板级确认","Fluke 87V","最后查SIM供电/检测线；RF中心导体不要用蜂鸣判断好坏。","异常→供电/基带方向"]
+],
+"Wi‑Fi / Bluetooth / GPS / NFC异常":[
+["不拆机","系统设置","重启、重置网络设置、更新系统。","恢复→结束"],
+["需要拆机","天线/同轴/NFC组件目检","检查接点、同轴、线圈并做良品交叉。","恢复→组件"],
+["板级确认","Fluke 87V","最后查相关供电；RF线路不要用通断蜂鸣简单判断。","异常→板级方向"]
+],
+"环境光 / 距离感应异常":[
+["不拆机","去膜/检查遮挡/系统","先排保护膜、胶、装配遮挡与系统设置。","恢复→结束"],
+["专用工具","JCID V1S Pro + 14/15距离感光板（适用机型）","适用型号优先读写/判断相关数据状态。","锁定组件→第3步"],
+["需要拆机","前感排线/组件目检","检查位置、排线、接口并良品/原装组件验证。","恢复→组件"],
+["板级确认","Fluke 87V","最后查前感供电/数据线路。","异常→板级方向"]
+]
+};
+function flowFor(name){
+  return FLOW[name]||[
+    ["不拆机","系统/外部检查","先做最简单、不拆机的功能定位和外部排除。","仍异常→下一步"],
+    ["需要时拆机","良品组件/目检","再做接口检查和已知正常部件交叉。","仍异常→板级确认"],
+    ["板级确认","Fluke 87V","最后才进入对地/电压/线路测量。","按异常网络继续"]
+  ];
+}
+function renderFlow(name){
+  const s=flowFor(name);
+  return `<div class="flowbox"><div class="flowtitle">⚡ 最快诊断流程｜按顺序做，不按概率跳步</div>
+  ${s.map((x,i)=>`<div class="flowstep"><div><span class="flownum">${i+1}</span><b>${esc(x[0])}</b>｜<span class="flowtool">${esc(x[1])}</span></div><div style="margin-top:6px">${esc(x[2])}</div><div class="flownote">结果：${esc(x[3])}</div></div>`).join('')}
+  </div>`;
+}
+
+function doSearch(){
+ if(!model.value){results.innerHTML='<div class="empty">请先选择具体iPhone型号。</div>';return;}
+ const term=q.value.trim(); if(!term){results.innerHTML='<div class="empty">请输入故障词，然后点 🔍 搜索。</div>';return;}
+ const matches=findFaults(term); if(!matches.length){results.innerHTML='<div class="empty">暂时没有匹配。可尝试：不开机、不充电、3分钟、重启、黑屏、触摸、相机、Face ID、扬声器、麦克风、进水、发热、无服务、Wi‑Fi。</div>';return;}
+ results.innerHTML=matches.map(f=>{
+  const cs=adjusted(f,model.value);
+  return `<section class="titlecard"><div class="small">当前型号</div><h2 style="margin:2px 0 6px">${esc(model.value)}｜${esc(f.name)}</h2><span class="badge">检测顺序 ≠ 故障概率</span><p class="small">先严格按下面“最快诊断流程”操作；后面的百分比卡片只表示原因可能性，不代表先后检测顺序。</p></section>`+
+  renderFlow(f.name)+
+  cs.map((c,i)=>`<article class="cause"><div class="causehead"><div><div class="pct">${c.pct}%</div><div class="rank">可能性第 ${i+1}</div></div><div><div class="causename">${esc(c.cause)}</div><div class="barbg"><div class="bar" style="width:${c.pct}%"></div></div></div></div><div class="body"><div class="row"><span class="label">该原因确认位置：</span>${esc(c.where)}</div><div class="row"><span class="label">确认方法：</span>${esc(c.test)}</div><div class="row tool">板级辅助工具：${esc(c.tool)}｜Fluke 87V档位：${esc(c.mode)}</div><div class="usemine"><span class="label">你已经有的工具：</span>${ownedToolAdvice(c).length?ownedToolAdvice(c).map(esc).join(' → '):'当前步骤不需要额外专用设备'}</div><div class="row"><span class="label">表笔/操作：</span>${esc(c.probe)}</div><div class="row good">正常：${esc(c.normal)}</div><div class="row bad">异常 / 下一步：${esc(c.abnormal)}</div></div></article>`).join('');
+ }).join('');
+}
+document.getElementById('search').addEventListener('click',doSearch);
+q.addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('diag').classList.toggle('hidden',b.dataset.tab!=='diag');document.getElementById('comp').classList.toggle('hidden',b.dataset.tab!=='comp');document.getElementById('tools').classList.toggle('hidden',b.dataset.tab!=='tools');}));
+const ct=document.getElementById('ct');
+ct.innerHTML='<tr><th>项目</th><th>87V档位</th><th>电源</th><th>怎么测</th><th>正常</th><th>异常</th></tr>'+COMPONENTS.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('');
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
